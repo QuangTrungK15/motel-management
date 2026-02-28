@@ -34,6 +34,17 @@ export async function requireAuth(request: Request): Promise<number> {
   if (!userId) {
     throw redirect("/login");
   }
+
+  // Verify the user still exists in the database
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw redirect("/login", {
+      headers: {
+        "Set-Cookie": await sessionStorage.destroySession(session),
+      },
+    });
+  }
+
   return userId;
 }
 

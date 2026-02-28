@@ -252,6 +252,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "errors.TENANT_HAS_ACTIVE_CONTRACTS": "Không thể xóa người thuê đang có hợp đồng hoạt động",
     "errors.MAX_OCCUPANTS": "Tối đa {max} người/phòng (1 người thuê + {rest} người ở cùng)",
     "errors.DUPLICATE_OCCUPANT_IDS": "Trùng số ID trong danh sách người ở cùng",
+    "errors.ROOM_NOT_VACANT": "Phòng không còn trống. Vui lòng thử lại.",
+    "errors.TENANT_ALREADY_HAS_CONTRACT": "Người thuê này đã có hợp đồng đang hoạt động.",
   },
 
   en: {
@@ -505,5 +507,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "errors.TENANT_HAS_ACTIVE_CONTRACTS": "Cannot delete tenant with active contracts",
     "errors.MAX_OCCUPANTS": "Maximum {max} people per room (1 tenant + {rest} occupants)",
     "errors.DUPLICATE_OCCUPANT_IDS": "Duplicate ID numbers within the submitted occupants",
+    "errors.ROOM_NOT_VACANT": "Room is no longer vacant. Please try again.",
+    "errors.TENANT_ALREADY_HAS_CONTRACT": "This tenant already has an active contract.",
   },
 };

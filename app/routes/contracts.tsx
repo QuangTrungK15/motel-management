@@ -96,9 +96,22 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
-    // Validate max occupants
+    // Validate room exists and is vacant
     const room = await prisma.room.findUnique({ where: { id: roomId } });
-    if (room && 1 + occupants.length > room.maxOccupants) {
+    if (!room || room.status !== "vacant") {
+      return { error: "ROOM_NOT_VACANT" };
+    }
+
+    // Validate tenant exists and has no active contract
+    const existingContract = await prisma.contract.findFirst({
+      where: { tenantId, status: "active" },
+    });
+    if (existingContract) {
+      return { error: "TENANT_ALREADY_HAS_CONTRACT" };
+    }
+
+    // Validate max occupants
+    if (1 + occupants.length > room.maxOccupants) {
       return { error: "MAX_OCCUPANTS", params: { max: String(room.maxOccupants), rest: String(room.maxOccupants - 1) } };
     }
 
@@ -120,25 +133,41 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
-    const contract = await prisma.contract.create({
-      data: {
-        roomId,
-        tenantId,
-        monthlyRent,
-        deposit,
-        startDate,
-        status: "active",
-        notes,
-        occupants: {
-          create: occupants,
-        },
-      },
-    });
+    // Create contract and update room status atomically
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Re-check room is still vacant inside the transaction
+        const freshRoom = await tx.room.findUnique({ where: { id: roomId } });
+        if (!freshRoom || freshRoom.status !== "vacant") {
+          throw new Error("ROOM_NOT_VACANT");
+        }
 
-    await prisma.room.update({
-      where: { id: roomId },
-      data: { status: "occupied" },
-    });
+        await tx.contract.create({
+          data: {
+            roomId,
+            tenantId,
+            monthlyRent,
+            deposit,
+            startDate,
+            status: "active",
+            notes,
+            occupants: {
+              create: occupants,
+            },
+          },
+        });
+
+        await tx.room.update({
+          where: { id: roomId },
+          data: { status: "occupied" },
+        });
+      });
+    } catch (e) {
+      if (e instanceof Error && e.message === "ROOM_NOT_VACANT") {
+        return { error: "ROOM_NOT_VACANT" };
+      }
+      throw e;
+    }
   }
 
   if (intent === "move-out") {
