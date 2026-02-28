@@ -21,6 +21,7 @@ import {
   TableCell,
 } from "~/components/ui/table";
 import { formatCurrency, formatMonth } from "~/lib/utils";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Utilities - NhaTro" }];
@@ -204,19 +205,20 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";
 
+  const { t } = useLanguage();
   const [editRow, setEditRow] = useState<UtilityRow | null>(null);
 
   return (
     <PageContainer>
       <Header
-        title="Utilities"
-        description="Track electricity and water usage per room"
+        title={t("utilities.title")}
+        description={t("utilities.description")}
         actions={
           <Form method="post">
             <input type="hidden" name="intent" value="generate-all" />
             <input type="hidden" name="month" value={month} />
             <Button variant="secondary" type="submit" disabled={isSubmitting}>
-              Generate All Rooms
+              {t("utilities.generateAllRooms")}
             </Button>
           </Form>
         }
@@ -234,27 +236,27 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="Total Electric" value={formatCurrency(stats.totalElectric)} />
-        <Stat label="Total Water" value={formatCurrency(stats.totalWater)} />
-        <Stat label="Total Utilities" value={formatCurrency(stats.totalAll)} />
+        <Stat label={t("utilities.totalElectric")} value={formatCurrency(stats.totalElectric)} />
+        <Stat label={t("utilities.totalWater")} value={formatCurrency(stats.totalWater)} />
+        <Stat label={t("utilities.totalUtilities")} value={formatCurrency(stats.totalAll)} />
       </div>
 
       {/* Utility Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Utility Readings — {formatMonth(month)}</CardTitle>
+          <CardTitle>{t("utilities.readings", { month: formatMonth(month) })}</CardTitle>
         </CardHeader>
 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Room</TableHead>
-              <TableHead>Electric (kWh)</TableHead>
-              <TableHead>Electric Cost</TableHead>
-              <TableHead>Water (m³)</TableHead>
-              <TableHead>Water Cost</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead>{t("common.roomLabel")}</TableHead>
+              <TableHead>{t("utilities.electricKwh")}</TableHead>
+              <TableHead>{t("utilities.electricCost")}</TableHead>
+              <TableHead>{t("utilities.waterM3")}</TableHead>
+              <TableHead>{t("utilities.waterCost")}</TableHead>
+              <TableHead>{t("utilities.total")}</TableHead>
+              <TableHead className="text-right">{t("common.action")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -267,7 +269,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
               return (
                 <TableRow key={row.roomId}>
                   <TableCell>
-                    <Badge variant="info">Room {row.roomNumber}</Badge>
+                    <Badge variant="info">{t("common.room", { number: row.roomNumber })}</Badge>
                   </TableCell>
                   <TableCell>
                     {row.utilityId ? (
@@ -304,7 +306,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
                       size="sm"
                       onClick={() => setEditRow(row)}
                     >
-                      {row.utilityId ? "Edit" : "Enter"}
+                      {row.utilityId ? t("common.edit") : t("utilities.enter")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -318,7 +320,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
       <Modal
         open={!!editRow}
         onClose={() => setEditRow(null)}
-        title={editRow ? `Room ${editRow.roomNumber} — Utilities ${formatMonth(month)}` : ""}
+        title={editRow ? t("utilities.modalTitle", { room: editRow.roomNumber, month: formatMonth(month) }) : ""}
         size="lg"
       >
         {editRow && (
@@ -330,11 +332,11 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
             <div className="space-y-6">
               {/* Electricity */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Electricity</h4>
+                <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("utilities.electricity")}</h4>
                 <div className="grid grid-cols-3 gap-4">
                   <Input
                     id="electricStart"
-                    label="Start Reading (kWh)"
+                    label={t("utilities.startReadingKwh")}
                     name="electricStart"
                     type="number"
                     step="0.1"
@@ -342,7 +344,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
                   />
                   <Input
                     id="electricEnd"
-                    label="End Reading (kWh)"
+                    label={t("utilities.endReadingKwh")}
                     name="electricEnd"
                     type="number"
                     step="0.1"
@@ -350,7 +352,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
                   />
                   <Input
                     id="electricRate"
-                    label="Rate (per kWh)"
+                    label={t("utilities.ratePerKwh")}
                     name="electricRate"
                     type="number"
                     defaultValue={editRow.electricRate}
@@ -360,11 +362,11 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
 
               {/* Water */}
               <div>
-                <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Water</h4>
+                <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("utilities.water")}</h4>
                 <div className="grid grid-cols-3 gap-4">
                   <Input
                     id="waterStart"
-                    label="Start Reading (m³)"
+                    label={t("utilities.startReadingM3")}
                     name="waterStart"
                     type="number"
                     step="0.1"
@@ -372,7 +374,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
                   />
                   <Input
                     id="waterEnd"
-                    label="End Reading (m³)"
+                    label={t("utilities.endReadingM3")}
                     name="waterEnd"
                     type="number"
                     step="0.1"
@@ -380,7 +382,7 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
                   />
                   <Input
                     id="waterRate"
-                    label="Rate (per m³)"
+                    label={t("utilities.ratePerM3")}
                     name="waterRate"
                     type="number"
                     defaultValue={editRow.waterRate}
@@ -395,10 +397,10 @@ export default function Utilities({ loaderData }: Route.ComponentProps) {
                 variant="secondary"
                 onClick={() => setEditRow(null)}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </Form>

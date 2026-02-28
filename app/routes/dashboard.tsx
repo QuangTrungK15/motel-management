@@ -7,6 +7,7 @@ import { Stat } from "~/components/ui/stat";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { formatCurrency } from "~/lib/utils";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [
@@ -52,31 +53,32 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 const statusConfig = {
-  vacant: { label: "Vacant", variant: "success" as const },
-  occupied: { label: "Occupied", variant: "info" as const },
-  maintenance: { label: "Maintenance", variant: "warning" as const },
+  vacant: { variant: "success" as const },
+  occupied: { variant: "info" as const },
+  maintenance: { variant: "warning" as const },
 };
 
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const { rooms, stats } = loaderData;
+  const { t } = useLanguage();
 
   return (
     <PageContainer>
       <Header
-        title="Dashboard"
-        description="Overview of your motel"
+        title={t("dashboard.title")}
+        description={t("dashboard.description")}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Total Rooms" value={stats.totalRooms} />
-        <Stat label="Occupied" value={stats.occupiedRooms} />
-        <Stat label="Vacant" value={stats.vacantRooms} />
-        <Stat label="Active Contracts" value={stats.activeContracts} />
+        <Stat label={t("dashboard.totalRooms")} value={stats.totalRooms} />
+        <Stat label={t("dashboard.occupied")} value={stats.occupiedRooms} />
+        <Stat label={t("dashboard.vacant")} value={stats.vacantRooms} />
+        <Stat label={t("dashboard.activeContracts")} value={stats.activeContracts} />
       </div>
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Room Overview</CardTitle>
+          <CardTitle>{t("dashboard.roomOverview")}</CardTitle>
         </CardHeader>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
           {rooms.map((room) => {
@@ -91,10 +93,10 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
                 className="rounded-lg border border-gray-200 p-4 text-center transition-shadow hover:shadow-md dark:border-gray-700"
               >
                 <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  Room {room.number}
+                  {t("common.room", { number: room.number })}
                 </p>
                 <Badge variant={config.variant} className="mt-2">
-                  {config.label}
+                  {t("status." + room.status)}
                 </Badge>
                 {activeTenant && (
                   <>
@@ -102,7 +104,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
                       {activeTenant.firstName} {activeTenant.lastName}
                     </p>
                     <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      {totalPeople}/{room.maxOccupants} people
+                      {t("dashboard.people", { count: totalPeople, max: room.maxOccupants })}
                     </p>
                   </>
                 )}

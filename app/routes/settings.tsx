@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Alert } from "~/components/ui/alert";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Settings - NhaTro" }];
@@ -77,14 +78,15 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const saved = actionData && "ok" in actionData;
+  const { t } = useLanguage();
 
   return (
     <PageContainer>
-      <Header title="Settings" description="Configure your motel" />
+      <Header title={t("settings.title")} description={t("settings.description")} />
 
       {saved && (
         <Alert variant="success" className="mb-6">
-          Settings saved successfully.
+          {t("settings.savedSuccess")}
         </Alert>
       )}
 
@@ -92,36 +94,36 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
         {/* Motel Info */}
         <Card>
           <CardHeader>
-            <CardTitle>Motel Information</CardTitle>
+            <CardTitle>{t("settings.motelInfo")}</CardTitle>
           </CardHeader>
           <Form method="post">
             <input type="hidden" name="intent" value="save-motel-info" />
             <div className="space-y-4">
               <Input
                 id="motel_name"
-                label="Motel Name"
+                label={t("settings.motelName")}
                 name="motel_name"
                 defaultValue={settings.motel_name || ""}
-                placeholder="My Motel"
+                placeholder={t("settings.motelNamePlaceholder")}
               />
               <Input
                 id="motel_address"
-                label="Address"
+                label={t("settings.address")}
                 name="motel_address"
                 defaultValue={settings.motel_address || ""}
-                placeholder="123 Street, City"
+                placeholder={t("settings.addressPlaceholder")}
               />
               <Input
                 id="motel_phone"
-                label="Phone"
+                label={t("common.phone")}
                 name="motel_phone"
                 defaultValue={settings.motel_phone || ""}
-                placeholder="0901234567"
+                placeholder={t("settings.phonePlaceholder")}
               />
             </div>
             <div className="mt-6">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Motel Info"}
+                {isSubmitting ? t("common.saving") : t("settings.saveMotelInfo")}
               </Button>
             </div>
           </Form>
@@ -130,35 +132,35 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
         {/* Rates */}
         <Card>
           <CardHeader>
-            <CardTitle>Default Rates</CardTitle>
+            <CardTitle>{t("settings.defaultRates")}</CardTitle>
           </CardHeader>
           <Form method="post">
             <input type="hidden" name="intent" value="save-rates" />
             <div className="space-y-4">
               <Input
                 id="default_room_rate"
-                label="Default Room Rate (per month)"
+                label={t("settings.defaultRoomRate")}
                 name="default_room_rate"
                 type="number"
                 defaultValue={settings.default_room_rate || "3000000"}
               />
               <Input
                 id="electric_rate"
-                label="Electricity Rate (per kWh)"
+                label={t("settings.electricityRate")}
                 name="electric_rate"
                 type="number"
                 defaultValue={settings.electric_rate || "3500"}
               />
               <Input
                 id="water_rate"
-                label="Water Rate (per m³)"
+                label={t("settings.waterRate")}
                 name="water_rate"
                 type="number"
                 defaultValue={settings.water_rate || "20000"}
               />
               <Input
                 id="currency"
-                label="Currency"
+                label={t("settings.currency")}
                 name="currency"
                 defaultValue={settings.currency || "VND"}
                 placeholder="VND"
@@ -166,7 +168,7 @@ export default function Settings({ loaderData, actionData }: Route.ComponentProp
             </div>
             <div className="mt-6">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Rates"}
+                {isSubmitting ? t("common.saving") : t("settings.saveRates")}
               </Button>
             </div>
           </Form>

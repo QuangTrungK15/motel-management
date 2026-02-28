@@ -23,6 +23,7 @@ import { formatCurrency, formatDate } from "~/lib/utils";
 import { findDuplicateId } from "~/lib/validate-id.server";
 import { Alert } from "~/components/ui/alert";
 import { requireAuth } from "~/lib/auth.server";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Contracts - NhaTro" }];
@@ -98,7 +99,7 @@ export async function action({ request }: Route.ActionArgs) {
     // Validate max occupants
     const room = await prisma.room.findUnique({ where: { id: roomId } });
     if (room && 1 + occupants.length > room.maxOccupants) {
-      return { error: `Maximum ${room.maxOccupants} people per room (1 tenant + ${room.maxOccupants - 1} occupants)` };
+      return { error: "MAX_OCCUPANTS", params: { max: String(room.maxOccupants), rest: String(room.maxOccupants - 1) } };
     }
 
     // Validate unique ID numbers
@@ -106,7 +107,7 @@ export async function action({ request }: Route.ActionArgs) {
     const submittedIds = occupants.filter((o) => o.idNumber).map((o) => o.idNumber);
     const uniqueSubmittedIds = new Set(submittedIds);
     if (submittedIds.length !== uniqueSubmittedIds.size) {
-      return { error: "Duplicate ID numbers within the submitted occupants" };
+      return { error: "DUPLICATE_OCCUPANT_IDS" };
     }
 
     // Check each occupant's ID against existing tenants and occupants
@@ -114,7 +115,7 @@ export async function action({ request }: Route.ActionArgs) {
       if (occ.idNumber) {
         const duplicate = await findDuplicateId(occ.idNumber);
         if (duplicate) {
-          return { error: `ID number "${occ.idNumber}" is already used by ${duplicate}` };
+          return { error: "DUPLICATE_ID", params: { id: occ.idNumber, name: duplicate } };
         }
       }
     }
@@ -177,7 +178,10 @@ interface OccupantRow {
 
 export default function Contracts({ loaderData, actionData }: Route.ComponentProps) {
   const { contracts, vacantRooms, tenantsWithoutActiveContract } = loaderData;
-  const error = actionData && "error" in actionData ? actionData.error : null;
+  const { t } = useLanguage();
+  const errorCode = actionData && "error" in actionData ? actionData.error as string : null;
+  const errorParams = actionData && "params" in actionData ? actionData.params as Record<string, string> : undefined;
+  const error = errorCode ? t("errors." + errorCode, errorParams) : null;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -218,27 +222,27 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
   return (
     <PageContainer>
       <Header
-        title="Contracts"
-        description="Manage rental contracts — move in & move out"
+        title={t("contracts.title")}
+        description={t("contracts.description")}
         actions={
           <Button
             onClick={() => setShowMoveIn(true)}
             disabled={vacantRooms.length === 0 || tenantsWithoutActiveContract.length === 0}
           >
-            + Move In
+            {t("contracts.moveIn")}
           </Button>
         }
       />
 
       {vacantRooms.length === 0 && (
         <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-          No vacant rooms available. A tenant must move out before a new move-in.
+          {t("contracts.noVacantRooms")}
         </div>
       )}
 
       {tenantsWithoutActiveContract.length === 0 && vacantRooms.length > 0 && (
         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-          All tenants have active contracts. Add a new tenant first before moving in.
+          {t("contracts.allTenantsHaveContracts")}
         </div>
       )}
 
@@ -248,24 +252,24 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
 
       {/* Active Contracts */}
       <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
-        Active Contracts ({activeContracts.length})
+        {t("contracts.activeContracts", { count: activeContracts.length })}
       </h2>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Room</TableHead>
-            <TableHead>Tenant</TableHead>
-            <TableHead>People</TableHead>
-            <TableHead>Monthly Rent</TableHead>
-            <TableHead>Move-in Date</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("common.roomLabel")}</TableHead>
+            <TableHead>{t("reports.tenant")}</TableHead>
+            <TableHead>{t("contracts.people")}</TableHead>
+            <TableHead>{t("contracts.monthlyRent")}</TableHead>
+            <TableHead>{t("contracts.moveInDate")}</TableHead>
+            <TableHead className="text-right">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {activeContracts.length === 0 && (
             <TableRow>
               <TableCell colSpan={6} className="text-center text-gray-400 py-8">
-                No active contracts.
+                {t("contracts.noActiveContracts")}
               </TableCell>
             </TableRow>
           )}
@@ -274,7 +278,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
             return (
               <TableRow key={contract.id}>
                 <TableCell>
-                  <Badge variant="info">Room {contract.room.number}</Badge>
+                  <Badge variant="info">{t("common.room", { number: contract.room.number })}</Badge>
                 </TableCell>
                 <TableCell className="font-medium">
                   {contract.tenant.firstName} {contract.tenant.lastName}
@@ -292,7 +296,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
                     size="sm"
                     onClick={() => setMoveOutContract(contract)}
                   >
-                    Move Out
+                    {t("contracts.moveOut")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -305,23 +309,23 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
       {endedContracts.length > 0 && (
         <>
           <h2 className="mb-3 mt-8 text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Past Contracts ({endedContracts.length})
+            {t("contracts.pastContracts", { count: endedContracts.length })}
           </h2>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Room</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>People</TableHead>
-                <TableHead>Monthly Rent</TableHead>
-                <TableHead>Move-in</TableHead>
-                <TableHead>Move-out</TableHead>
+                <TableHead>{t("common.roomLabel")}</TableHead>
+                <TableHead>{t("reports.tenant")}</TableHead>
+                <TableHead>{t("contracts.people")}</TableHead>
+                <TableHead>{t("contracts.monthlyRent")}</TableHead>
+                <TableHead>{t("contracts.moveInCol")}</TableHead>
+                <TableHead>{t("contracts.moveOutCol")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {endedContracts.map((contract) => (
                 <TableRow key={contract.id}>
-                  <TableCell>Room {contract.room.number}</TableCell>
+                  <TableCell>{t("common.room", { number: contract.room.number })}</TableCell>
                   <TableCell>
                     {contract.tenant.firstName} {contract.tenant.lastName}
                   </TableCell>
@@ -333,7 +337,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
                   <TableCell>{formatCurrency(contract.monthlyRent)}</TableCell>
                   <TableCell>{formatDate(contract.startDate)}</TableCell>
                   <TableCell>
-                    {contract.endDate ? formatDate(contract.endDate) : "—"}
+                    {contract.endDate ? formatDate(contract.endDate) : "\u2014"}
                   </TableCell>
                 </TableRow>
               ))}
@@ -346,7 +350,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
       <Modal
         open={showMoveIn}
         onClose={closeMoveIn}
-        title="Move In — New Contract"
+        title={t("contracts.moveInTitle")}
         size="lg"
       >
         <Form method="post">
@@ -360,28 +364,28 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
           <div className="space-y-4">
             <Select
               id="roomId"
-              label="Room"
+              label={t("contracts.roomLabel")}
               name="roomId"
               required
               options={[
-                { value: "", label: "Select a room..." },
+                { value: "", label: t("contracts.selectRoom") },
                 ...vacantRooms.map((r) => ({
                   value: String(r.id),
-                  label: `Room ${r.number} — ${formatCurrency(r.rate)}/month (max ${r.maxOccupants} people)`,
+                  label: t("contracts.roomOption", { number: r.number, rate: formatCurrency(r.rate), max: r.maxOccupants }),
                 })),
               ]}
             />
 
             <Select
               id="tenantId"
-              label="Main Tenant"
+              label={t("contracts.mainTenant")}
               name="tenantId"
               required
               options={[
-                { value: "", label: "Select a tenant..." },
-                ...tenantsWithoutActiveContract.map((t) => ({
-                  value: String(t.id),
-                  label: `${t.firstName} ${t.lastName}`,
+                { value: "", label: t("contracts.selectTenant") },
+                ...tenantsWithoutActiveContract.map((tn) => ({
+                  value: String(tn.id),
+                  label: `${tn.firstName} ${tn.lastName}`,
                 })),
               ]}
             />
@@ -389,7 +393,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
             <div className="grid grid-cols-2 gap-4">
               <Input
                 id="monthlyRent"
-                label="Monthly Rent"
+                label={t("contracts.monthlyRentLabel")}
                 name="monthlyRent"
                 type="number"
                 required
@@ -397,7 +401,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
               />
               <Input
                 id="deposit"
-                label="Deposit"
+                label={t("contracts.depositLabel")}
                 name="deposit"
                 type="number"
                 defaultValue={0}
@@ -406,7 +410,7 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
 
             <Input
               id="startDate"
-              label="Move-in Date"
+              label={t("contracts.moveInDateLabel")}
               name="startDate"
               type="date"
               required
@@ -415,16 +419,16 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
 
             <Textarea
               id="notes"
-              label="Notes"
+              label={t("common.notes")}
               name="notes"
-              placeholder="Any notes about this contract..."
+              placeholder={t("common.notes")}
             />
 
             {/* Occupants Section */}
             <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  Additional Occupants ({occupants.length}/4)
+                  {t("contracts.additionalOccupants", { count: occupants.length })}
                 </h4>
                 <Button
                   type="button"
@@ -433,11 +437,11 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
                   onClick={addOccupant}
                   disabled={occupants.length >= 4}
                 >
-                  + Add Person
+                  {t("contracts.addPerson")}
                 </Button>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                Max 5 people per room (1 main tenant + 4 occupants)
+                {t("contracts.maxPeopleNote")}
               </p>
 
               {occupants.map((occ, i) => (
@@ -447,67 +451,67 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Person {i + 2}
+                      {t("contracts.person", { number: i + 2 })}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeOccupant(i)}
                       className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
                     >
-                      Remove
+                      {t("common.remove")}
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <Input
                       id={`occupant_${i}_firstName`}
-                      label="First Name"
+                      label={t("tenants.firstName")}
                       name={`occupant_${i}_firstName`}
                       required
-                      placeholder="First name"
+                      placeholder={t("tenants.firstName")}
                     />
                     <Input
                       id={`occupant_${i}_lastName`}
-                      label="Last Name"
+                      label={t("tenants.lastName")}
                       name={`occupant_${i}_lastName`}
                       required
-                      placeholder="Last name"
+                      placeholder={t("tenants.lastName")}
                     />
                     <Input
                       id={`occupant_${i}_phone`}
-                      label="Phone"
+                      label={t("common.phone")}
                       name={`occupant_${i}_phone`}
-                      placeholder="Phone"
+                      placeholder={t("common.phone")}
                     />
                     <Select
                       id={`occupant_${i}_relationship`}
-                      label="Relationship"
+                      label={t("contracts.relationship")}
                       name={`occupant_${i}_relationship`}
                       options={[
-                        { value: "", label: "Select..." },
-                        { value: "spouse", label: "Spouse" },
-                        { value: "family", label: "Family" },
-                        { value: "friend", label: "Friend" },
-                        { value: "roommate", label: "Roommate" },
-                        { value: "other", label: "Other" },
+                        { value: "", label: t("common.select") },
+                        { value: "spouse", label: t("contracts.spouse") },
+                        { value: "family", label: t("contracts.family") },
+                        { value: "friend", label: t("contracts.friend") },
+                        { value: "roommate", label: t("contracts.roommate") },
+                        { value: "other", label: t("contracts.other") },
                       ]}
                     />
                     <Select
                       id={`occupant_${i}_idType`}
-                      label="ID Type"
+                      label={t("tenants.idType")}
                       name={`occupant_${i}_idType`}
                       options={[
-                        { value: "", label: "Select..." },
+                        { value: "", label: t("common.select") },
                         { value: "CCCD", label: "CCCD" },
                         { value: "CMND", label: "CMND" },
                         { value: "Passport", label: "Passport" },
-                        { value: "Other", label: "Other" },
+                        { value: "Other", label: t("contracts.other") },
                       ]}
                     />
                     <Input
                       id={`occupant_${i}_idNumber`}
-                      label="ID Number"
+                      label={t("tenants.idNumber")}
                       name={`occupant_${i}_idNumber`}
-                      placeholder="ID number"
+                      placeholder={t("tenants.idNumberPlaceholder")}
                     />
                   </div>
                 </div>
@@ -521,10 +525,10 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
               variant="secondary"
               onClick={closeMoveIn}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Move In"}
+              {isSubmitting ? t("contracts.creating") : t("contracts.moveInSubmit")}
             </Button>
           </div>
         </Form>
@@ -547,17 +551,22 @@ export default function Contracts({ loaderData, actionData }: Route.ComponentPro
           form?.requestSubmit();
           setMoveOutContract(null);
         }}
-        title="Confirm Move Out"
+        title={t("contracts.confirmMoveOutTitle")}
         message={
           moveOutContract
-            ? `Move out ${moveOutContract.tenant.firstName} ${moveOutContract.tenant.lastName}${
-                moveOutContract.occupants.length > 0
-                  ? ` and ${moveOutContract.occupants.length} occupant${moveOutContract.occupants.length > 1 ? "s" : ""}`
-                  : ""
-              } from Room ${moveOutContract.room.number}? This will end the contract.`
+            ? moveOutContract.occupants.length > 0
+              ? t("contracts.moveOutConfirmWithOccupants", {
+                  name: `${moveOutContract.tenant.firstName} ${moveOutContract.tenant.lastName}`,
+                  count: moveOutContract.occupants.length,
+                  room: moveOutContract.room.number,
+                })
+              : t("contracts.moveOutConfirm", {
+                  name: `${moveOutContract.tenant.firstName} ${moveOutContract.tenant.lastName}`,
+                  room: moveOutContract.room.number,
+                })
             : ""
         }
-        confirmLabel="Move Out"
+        confirmLabel={t("contracts.moveOut")}
       />
     </PageContainer>
   );

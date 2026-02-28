@@ -22,6 +22,7 @@ import {
   TableCell,
 } from "~/components/ui/table";
 import { formatCurrency, formatMonth } from "~/lib/utils";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Payments - NhaTro" }];
@@ -186,23 +187,36 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";
 
+  const { t } = useLanguage();
   const [showAddPayment, setShowAddPayment] = useState(false);
+
+  const typeLabels: Record<string, string> = {
+    rent: t("payments.typeRent"),
+    deposit: t("payments.typeDeposit"),
+    utility: t("payments.typeUtility"),
+    other: t("payments.typeOther"),
+  };
+  const methodLabels: Record<string, string> = {
+    cash: t("payments.methodCash"),
+    transfer: t("payments.methodTransfer"),
+    card: t("payments.methodCard"),
+  };
 
   return (
     <PageContainer>
       <Header
-        title="Payments"
-        description="Track rent payments and other charges"
+        title={t("payments.title")}
+        description={t("payments.description")}
         actions={
           <div className="flex gap-3">
             <Form method="post">
               <input type="hidden" name="intent" value="generate-rent" />
               <input type="hidden" name="month" value={month} />
               <Button variant="secondary" type="submit" disabled={isSubmitting}>
-                Generate Rent
+                {t("payments.generateRent")}
               </Button>
             </Form>
-            <Button onClick={() => setShowAddPayment(true)}>+ Add Payment</Button>
+            <Button onClick={() => setShowAddPayment(true)}>{t("payments.addPayment")}</Button>
           </div>
         }
       />
@@ -219,47 +233,47 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="Expected" value={formatCurrency(stats.totalExpected)} />
-        <Stat label="Collected" value={formatCurrency(stats.totalPaid)} />
-        <Stat label="Pending" value={formatCurrency(stats.totalPending)} />
+        <Stat label={t("payments.expected")} value={formatCurrency(stats.totalExpected)} />
+        <Stat label={t("payments.collected")} value={formatCurrency(stats.totalPaid)} />
+        <Stat label={t("payments.pending")} value={formatCurrency(stats.totalPending)} />
       </div>
 
       {/* Rent Status per Room */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Rent Status — {formatMonth(month)}</CardTitle>
+          <CardTitle>{t("payments.rentStatus", { month: formatMonth(month) })}</CardTitle>
         </CardHeader>
 
         {rentStatus.length === 0 ? (
           <p className="text-sm text-gray-400">
-            No active contracts. Click "Generate Rent" to create rent records for this month.
+            {t("payments.noActiveContracts")}
           </p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Room</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Rent</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>{t("common.roomLabel")}</TableHead>
+                <TableHead>{t("reports.tenant")}</TableHead>
+                <TableHead>{t("payments.rent")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead className="text-right">{t("common.action")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rentStatus.map((row) => (
                 <TableRow key={row.contractId}>
                   <TableCell>
-                    <Badge variant="info">Room {row.roomNumber}</Badge>
+                    <Badge variant="info">{t("common.room", { number: row.roomNumber })}</Badge>
                   </TableCell>
                   <TableCell className="font-medium">{row.tenantName}</TableCell>
                   <TableCell>{formatCurrency(row.monthlyRent)}</TableCell>
                   <TableCell>
                     {row.paymentId ? (
                       <Badge variant={row.paid ? "success" : "warning"}>
-                        {row.paid ? "Paid" : "Pending"}
+                        {row.paid ? t("status.paid") : t("status.pending")}
                       </Badge>
                     ) : (
-                      <Badge variant="default">Not generated</Badge>
+                      <Badge variant="default">{t("payments.notGenerated")}</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -268,7 +282,7 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
                         <input type="hidden" name="intent" value="mark-paid" />
                         <input type="hidden" name="paymentId" value={row.paymentId} />
                         <Button variant="primary" size="sm" type="submit" disabled={isSubmitting}>
-                          Mark Paid
+                          {t("payments.markPaid")}
                         </Button>
                       </Form>
                     )}
@@ -277,7 +291,7 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
                         <input type="hidden" name="intent" value="mark-unpaid" />
                         <input type="hidden" name="paymentId" value={row.paymentId} />
                         <Button variant="ghost" size="sm" type="submit" disabled={isSubmitting}>
-                          Undo
+                          {t("payments.undo")}
                         </Button>
                       </Form>
                     )}
@@ -292,28 +306,28 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
       {/* All Payments this Month */}
       <Card>
         <CardHeader>
-          <CardTitle>All Payments — {formatMonth(month)}</CardTitle>
+          <CardTitle>{t("payments.allPayments", { month: formatMonth(month) })}</CardTitle>
         </CardHeader>
 
         {allPayments.length === 0 ? (
-          <p className="text-sm text-gray-400">No payments recorded for this month.</p>
+          <p className="text-sm text-gray-400">{t("payments.noPayments")}</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Room</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>{t("common.roomLabel")}</TableHead>
+                <TableHead>{t("reports.tenant")}</TableHead>
+                <TableHead>{t("payments.type")}</TableHead>
+                <TableHead>{t("payments.amount")}</TableHead>
+                <TableHead>{t("payments.method")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead className="text-right">{t("common.action")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {allPayments.map((payment) => (
                 <TableRow key={payment.id}>
-                  <TableCell>Room {payment.contract.room.number}</TableCell>
+                  <TableCell>{t("common.room", { number: payment.contract.room.number })}</TableCell>
                   <TableCell>
                     {payment.contract.tenant.firstName} {payment.contract.tenant.lastName}
                   </TableCell>
@@ -329,16 +343,16 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
                           : "default"
                       }
                     >
-                      {payment.type}
+                      {typeLabels[payment.type] || payment.type}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-medium">
                     {formatCurrency(payment.amount)}
                   </TableCell>
-                  <TableCell>{payment.method}</TableCell>
+                  <TableCell>{methodLabels[payment.method] || payment.method}</TableCell>
                   <TableCell>
                     <Badge variant={payment.status === "paid" ? "success" : "warning"}>
-                      {payment.status}
+                      {t("status." + payment.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -352,7 +366,7 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
                         className="text-red-600 hover:text-red-700"
                         disabled={isSubmitting}
                       >
-                        Delete
+                        {t("common.delete")}
                       </Button>
                     </Form>
                   </TableCell>
@@ -367,7 +381,7 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
       <Modal
         open={showAddPayment}
         onClose={() => setShowAddPayment(false)}
-        title="Add Payment"
+        title={t("payments.addPaymentTitle")}
         size="lg"
       >
         <Form method="post" onSubmit={() => setShowAddPayment(false)}>
@@ -376,14 +390,14 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
           <div className="space-y-4">
             <Select
               id="contractId"
-              label="Contract (Room — Tenant)"
+              label={t("payments.contractRoom")}
               name="contractId"
               required
               options={[
-                { value: "", label: "Select..." },
+                { value: "", label: t("common.select") },
                 ...activeContracts.map((c) => ({
                   value: String(c.id),
-                  label: `Room ${c.room.number} — ${c.tenant.firstName} ${c.tenant.lastName}`,
+                  label: `${t("common.room", { number: c.room.number })} — ${c.tenant.firstName} ${c.tenant.lastName}`,
                 })),
               ]}
             />
@@ -391,7 +405,7 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
             <div className="grid grid-cols-2 gap-4">
               <Input
                 id="amount"
-                label="Amount"
+                label={t("payments.amount")}
                 name="amount"
                 type="number"
                 required
@@ -399,7 +413,7 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
               />
               <Input
                 id="paymentMonth"
-                label="Month"
+                label={t("payments.monthLabel")}
                 name="month"
                 defaultValue={month}
                 placeholder="YYYY-MM"
@@ -410,41 +424,41 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
             <div className="grid grid-cols-3 gap-4">
               <Select
                 id="type"
-                label="Type"
+                label={t("payments.type")}
                 name="type"
                 options={[
-                  { value: "rent", label: "Rent" },
-                  { value: "deposit", label: "Deposit" },
-                  { value: "utility", label: "Utility" },
-                  { value: "other", label: "Other" },
+                  { value: "rent", label: t("payments.typeRent") },
+                  { value: "deposit", label: t("payments.typeDeposit") },
+                  { value: "utility", label: t("payments.typeUtility") },
+                  { value: "other", label: t("payments.typeOther") },
                 ]}
               />
               <Select
                 id="method"
-                label="Method"
+                label={t("payments.method")}
                 name="method"
                 options={[
-                  { value: "cash", label: "Cash" },
-                  { value: "transfer", label: "Transfer" },
-                  { value: "card", label: "Card" },
+                  { value: "cash", label: t("payments.methodCash") },
+                  { value: "transfer", label: t("payments.methodTransfer") },
+                  { value: "card", label: t("payments.methodCard") },
                 ]}
               />
               <Select
                 id="status"
-                label="Status"
+                label={t("common.status")}
                 name="status"
                 options={[
-                  { value: "paid", label: "Paid" },
-                  { value: "pending", label: "Pending" },
+                  { value: "paid", label: t("status.paid") },
+                  { value: "pending", label: t("status.pending") },
                 ]}
               />
             </div>
 
             <Textarea
               id="notes"
-              label="Notes"
+              label={t("common.notes")}
               name="notes"
-              placeholder="Optional notes..."
+              placeholder={t("payments.notesPlaceholder")}
             />
           </div>
 
@@ -454,10 +468,10 @@ export default function Payments({ loaderData }: Route.ComponentProps) {
               variant="secondary"
               onClick={() => setShowAddPayment(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Add Payment"}
+              {isSubmitting ? t("common.saving") : t("payments.addPaymentSubmit")}
             </Button>
           </div>
         </Form>

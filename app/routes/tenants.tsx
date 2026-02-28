@@ -23,6 +23,7 @@ import { Alert } from "~/components/ui/alert";
 import { formatDate } from "~/lib/utils";
 import { findDuplicateId } from "~/lib/validate-id.server";
 import { requireAuth } from "~/lib/auth.server";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Tenants - NhaTro" }];
@@ -66,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (idNumber) {
       const duplicate = await findDuplicateId(idNumber);
       if (duplicate) {
-        return { error: `ID number "${idNumber}" is already used by ${duplicate}` };
+        return { error: "DUPLICATE_ID", params: { id: idNumber, name: duplicate } };
       }
     }
     await prisma.tenant.create({
@@ -88,7 +89,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (idNumber) {
       const duplicate = await findDuplicateId(idNumber, { excludeTenantId: id });
       if (duplicate) {
-        return { error: `ID number "${idNumber}" is already used by ${duplicate}` };
+        return { error: "DUPLICATE_ID", params: { id: idNumber, name: duplicate } };
       }
     }
     await prisma.tenant.update({
@@ -112,7 +113,7 @@ export async function action({ request }: Route.ActionArgs) {
       where: { tenantId: id, status: "active" },
     });
     if (activeContracts > 0) {
-      return { error: "Cannot delete tenant with active contracts" };
+      return { error: "TENANT_HAS_ACTIVE_CONTRACTS" };
     }
     // Delete related payments, contracts, then tenant
     const contracts = await prisma.contract.findMany({
@@ -138,7 +139,10 @@ type TenantWithContracts = Awaited<
 
 export default function Tenants({ loaderData, actionData }: Route.ComponentProps) {
   const { tenants, search } = loaderData;
-  const error = actionData && "error" in actionData ? actionData.error : null;
+  const { t } = useLanguage();
+  const errorCode = actionData && "error" in actionData ? actionData.error as string : null;
+  const errorParams = actionData && "params" in actionData ? actionData.params as Record<string, string> : undefined;
+  const error = errorCode ? t("errors." + errorCode, errorParams) : null;
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === "submitting";
@@ -160,10 +164,10 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
   return (
     <PageContainer>
       <Header
-        title="Tenants"
-        description={`${tenants.length} tenant${tenants.length !== 1 ? "s" : ""}`}
+        title={t("tenants.title")}
+        description={t("tenants.count", { count: tenants.length })}
         actions={
-          <Button onClick={() => setShowCreate(true)}>+ Add Tenant</Button>
+          <Button onClick={() => setShowCreate(true)}>{t("tenants.addTenant")}</Button>
         }
       />
 
@@ -174,7 +178,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
       {/* Search */}
       <div className="mb-6">
         <Input
-          placeholder="Search by name, phone, or ID..."
+          placeholder={t("tenants.searchPlaceholder")}
           defaultValue={search}
           onChange={(e) => {
             const val = e.target.value;
@@ -191,19 +195,19 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>ID Number</TableHead>
-            <TableHead>Room</TableHead>
-            <TableHead>Since</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            <TableHead>{t("common.phone")}</TableHead>
+            <TableHead>{t("tenants.idNumber")}</TableHead>
+            <TableHead>{t("common.roomLabel")}</TableHead>
+            <TableHead>{t("tenants.since")}</TableHead>
+            <TableHead className="text-right">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tenants.length === 0 && (
             <TableRow>
               <TableCell colSpan={6} className="text-center text-gray-400 py-8">
-                No tenants found.
+                {t("tenants.noTenants")}
               </TableCell>
             </TableRow>
           )}
@@ -214,7 +218,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
                 <TableCell className="font-medium">
                   {tenant.firstName} {tenant.lastName}
                 </TableCell>
-                <TableCell>{tenant.phone || "—"}</TableCell>
+                <TableCell>{tenant.phone || "\u2014"}</TableCell>
                 <TableCell>
                   {tenant.idNumber ? (
                     <span>
@@ -226,14 +230,14 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
                       {tenant.idNumber}
                     </span>
                   ) : (
-                    "—"
+                    "\u2014"
                   )}
                 </TableCell>
                 <TableCell>
                   {activeContract ? (
-                    <Badge variant="info">Room {activeContract.room.number}</Badge>
+                    <Badge variant="info">{t("common.room", { number: activeContract.room.number })}</Badge>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-gray-400">\u2014</span>
                   )}
                 </TableCell>
                 <TableCell>{formatDate(tenant.createdAt)}</TableCell>
@@ -244,7 +248,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
                       size="sm"
                       onClick={() => setEditTenant(tenant)}
                     >
-                      Edit
+                      {t("common.edit")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -252,7 +256,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
                       onClick={() => setDeleteTenant(tenant)}
                       className="text-red-600 hover:text-red-700"
                     >
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </div>
                 </TableCell>
@@ -266,7 +270,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
       <Modal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        title="Add New Tenant"
+        title={t("tenants.addNewTitle")}
         size="lg"
       >
         <TenantForm
@@ -274,6 +278,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
           isSubmitting={isSubmitting}
           intent="create"
           error={error}
+          t={t}
         />
       </Modal>
 
@@ -281,7 +286,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
       <Modal
         open={!!editTenant}
         onClose={() => setEditTenant(null)}
-        title="Edit Tenant"
+        title={t("tenants.editTitle")}
         size="lg"
       >
         {editTenant && (
@@ -291,6 +296,7 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
             isSubmitting={isSubmitting}
             intent="update"
             error={error}
+            t={t}
           />
         )}
       </Modal>
@@ -310,10 +316,10 @@ export default function Tenants({ loaderData, actionData }: Route.ComponentProps
           form?.requestSubmit();
           setDeleteTenant(null);
         }}
-        title="Delete Tenant"
+        title={t("tenants.deleteTitle")}
         message={
           deleteTenant
-            ? `Are you sure you want to delete ${deleteTenant.firstName} ${deleteTenant.lastName}? This cannot be undone.`
+            ? t("tenants.deleteConfirm", { name: `${deleteTenant.firstName} ${deleteTenant.lastName}` })
             : ""
         }
       />
@@ -327,12 +333,14 @@ function TenantForm({
   isSubmitting,
   intent,
   error,
+  t,
 }: {
   tenant?: TenantWithContracts;
   onClose: () => void;
   isSubmitting: boolean;
   intent: string;
   error?: string | null;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   return (
     <Form method="post">
@@ -346,73 +354,73 @@ function TenantForm({
       <div className="grid grid-cols-2 gap-4">
         <Input
           id="firstName"
-          label="First Name"
+          label={t("tenants.firstName")}
           name="firstName"
           required
           defaultValue={tenant?.firstName}
-          placeholder="First name"
+          placeholder={t("tenants.firstName")}
         />
         <Input
           id="lastName"
-          label="Last Name"
+          label={t("tenants.lastName")}
           name="lastName"
           required
           defaultValue={tenant?.lastName}
-          placeholder="Last name"
+          placeholder={t("tenants.lastName")}
         />
         <Input
           id="phone"
-          label="Phone"
+          label={t("common.phone")}
           name="phone"
           defaultValue={tenant?.phone}
-          placeholder="Phone number"
+          placeholder={t("tenants.phonePlaceholder")}
         />
         <Input
           id="email"
-          label="Email"
+          label={t("common.email")}
           name="email"
           type="email"
           defaultValue={tenant?.email}
-          placeholder="Email address"
+          placeholder={t("tenants.emailPlaceholder")}
         />
         <Select
           id="idType"
-          label="ID Type"
+          label={t("tenants.idType")}
           name="idType"
           defaultValue={tenant?.idType || ""}
           options={[
-            { value: "", label: "Select..." },
+            { value: "", label: t("common.select") },
             { value: "CCCD", label: "CCCD" },
             { value: "CMND", label: "CMND" },
             { value: "Passport", label: "Passport" },
-            { value: "Other", label: "Other" },
+            { value: "Other", label: t("contracts.other") },
           ]}
         />
         <Input
           id="idNumber"
-          label="ID Number"
+          label={t("tenants.idNumber")}
           name="idNumber"
           defaultValue={tenant?.idNumber}
-          placeholder="ID number"
+          placeholder={t("tenants.idNumberPlaceholder")}
         />
       </div>
 
       <div className="mt-4">
         <Textarea
           id="notes"
-          label="Notes"
+          label={t("common.notes")}
           name="notes"
           defaultValue={tenant?.notes}
-          placeholder="Any notes about this tenant..."
+          placeholder={t("tenants.notesPlaceholder")}
         />
       </div>
 
       <div className="mt-6 flex justify-end gap-3">
         <Button type="button" variant="secondary" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : tenant ? "Save Changes" : "Add Tenant"}
+          {isSubmitting ? t("common.saving") : tenant ? t("common.saveChanges") : t("tenants.addTenantSubmit")}
         </Button>
       </div>
     </Form>

@@ -17,11 +17,11 @@ test.describe("Login", () => {
   test("should show error with invalid credentials", async ({ page }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Username").fill("admin");
-    await page.getByLabel("Password").fill("wrongpassword");
-    await page.getByRole("button", { name: "Sign In" }).click();
+    await page.getByLabel("Tên đăng nhập").fill("admin");
+    await page.getByLabel("Mật khẩu").fill("wrongpassword");
+    await page.getByRole("button", { name: "Đăng nhập" }).click();
 
-    await expect(page.getByText("Invalid username or password")).toBeVisible();
+    await expect(page.getByText("Tên đăng nhập hoặc mật khẩu không đúng")).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 
@@ -30,24 +30,24 @@ test.describe("Login", () => {
   }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Username").fill("admin");
-    await page.getByLabel("Password").fill("admin123");
-    await page.getByRole("button", { name: "Sign In" }).click();
+    await page.getByLabel("Tên đăng nhập").fill("admin");
+    await page.getByLabel("Mật khẩu").fill("admin123");
+    await page.getByRole("button", { name: "Đăng nhập" }).click();
 
     await expect(page).toHaveURL("/");
-    await expect(page.locator("h1")).toHaveText("Dashboard");
+    await expect(page.locator("h1")).toHaveText("Bảng điều khiển");
   });
 
   test("should logout and redirect to login", async ({ page }) => {
     // Login first
     await page.goto("/login");
-    await page.getByLabel("Username").fill("admin");
-    await page.getByLabel("Password").fill("admin123");
-    await page.getByRole("button", { name: "Sign In" }).click();
+    await page.getByLabel("Tên đăng nhập").fill("admin");
+    await page.getByLabel("Mật khẩu").fill("admin123");
+    await page.getByRole("button", { name: "Đăng nhập" }).click();
     await expect(page).toHaveURL("/");
 
-    // Click logout
-    await page.getByRole("button", { name: "Logout" }).click();
+    // Click logout (Vietnamese default)
+    await page.getByRole("button", { name: "Đăng xuất" }).click();
 
     await expect(page).toHaveURL(/\/login/);
   });

@@ -17,6 +17,7 @@ import {
   TableCell,
 } from "~/components/ui/table";
 import { formatCurrency, formatMonth, formatDate } from "~/lib/utils";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Reports - NhaTro" }];
@@ -164,10 +165,18 @@ export default function Reports({ loaderData }: Route.ComponentProps) {
     totalUtilityCost,
   } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useLanguage();
+
+  const typeLabels: Record<string, string> = {
+    rent: t("payments.typeRent"),
+    deposit: t("payments.typeDeposit"),
+    utility: t("payments.typeUtility"),
+    other: t("payments.typeOther"),
+  };
 
   return (
     <PageContainer>
-      <Header title="Reports" description="Monthly summaries and analytics" />
+      <Header title={t("reports.title")} description={t("reports.description")} />
 
       {/* Month Selector */}
       <div className="mb-6">
@@ -181,26 +190,26 @@ export default function Reports({ loaderData }: Route.ComponentProps) {
 
       {/* Income Summary */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Total Income" value={formatCurrency(income.total)} />
-        <Stat label="Rent" value={formatCurrency(income.rent)} />
-        <Stat label="Deposits" value={formatCurrency(income.deposit)} />
-        <Stat label="Utilities" value={formatCurrency(income.utility)} />
-        <Stat label="Other" value={formatCurrency(income.other)} />
+        <Stat label={t("reports.totalIncome")} value={formatCurrency(income.total)} />
+        <Stat label={t("reports.rent")} value={formatCurrency(income.rent)} />
+        <Stat label={t("reports.deposits")} value={formatCurrency(income.deposit)} />
+        <Stat label={t("reports.utilities")} value={formatCurrency(income.utility)} />
+        <Stat label={t("reports.other")} value={formatCurrency(income.other)} />
       </div>
 
       {/* Occupancy & Utility Stats */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Occupancy Rate" value={`${occupancy.rate}%`} />
-        <Stat label="Occupied / Total" value={`${occupancy.occupied} / ${occupancy.total}`} />
-        <Stat label="Total Unpaid" value={formatCurrency(totalUnpaid)} />
-        <Stat label="Utility Costs" value={formatCurrency(totalUtilityCost)} />
+        <Stat label={t("reports.occupancyRate")} value={`${occupancy.rate}%`} />
+        <Stat label={t("reports.occupiedTotal")} value={`${occupancy.occupied} / ${occupancy.total}`} />
+        <Stat label={t("reports.totalUnpaid")} value={formatCurrency(totalUnpaid)} />
+        <Stat label={t("reports.utilityCosts")} value={formatCurrency(totalUtilityCost)} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Occupancy History */}
         <Card>
           <CardHeader>
-            <CardTitle>Occupancy History (6 months)</CardTitle>
+            <CardTitle>{t("reports.occupancyHistory")}</CardTitle>
           </CardHeader>
           <div className="space-y-3">
             {occupancyHistory.map((entry) => {
@@ -235,23 +244,23 @@ export default function Reports({ loaderData }: Route.ComponentProps) {
         <Card>
           <CardHeader>
             <CardTitle>
-              Unpaid Payments ({unpaidPayments.length})
+              {t("reports.unpaidPayments", { count: unpaidPayments.length })}
             </CardTitle>
           </CardHeader>
           {unpaidPayments.length === 0 ? (
             <p className="text-sm text-gray-400 dark:text-gray-500">
-              All payments are up to date.
+              {t("reports.allPaid")}
             </p>
           ) : (
             <div className="max-h-80 overflow-y-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Room</TableHead>
-                    <TableHead>Tenant</TableHead>
-                    <TableHead>Month</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Amount</TableHead>
+                    <TableHead>{t("common.roomLabel")}</TableHead>
+                    <TableHead>{t("reports.tenant")}</TableHead>
+                    <TableHead>{t("reports.month")}</TableHead>
+                    <TableHead>{t("payments.type")}</TableHead>
+                    <TableHead>{t("payments.amount")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -259,7 +268,7 @@ export default function Reports({ loaderData }: Route.ComponentProps) {
                     <TableRow key={p.id}>
                       <TableCell>
                         <Badge variant="info">
-                          Room {p.contract.room.number}
+                          {t("common.room", { number: p.contract.room.number })}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -268,7 +277,7 @@ export default function Reports({ loaderData }: Route.ComponentProps) {
                       </TableCell>
                       <TableCell>{formatMonth(p.month)}</TableCell>
                       <TableCell>
-                        <Badge variant="default">{p.type}</Badge>
+                        <Badge variant="default">{typeLabels[p.type] || p.type}</Badge>
                       </TableCell>
                       <TableCell className="font-medium">
                         {formatCurrency(p.amount)}

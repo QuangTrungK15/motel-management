@@ -4,6 +4,7 @@ import { login, requireAuth } from "~/lib/auth.server";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Alert } from "~/components/ui/alert";
+import { useLanguage } from "~/lib/language";
 
 export function meta() {
   return [{ title: "Login - NhaTro" }];
@@ -24,12 +25,12 @@ export async function action({ request }: Route.ActionArgs) {
   const password = formData.get("password") as string;
 
   if (!username || !password) {
-    return { error: "Please enter both username and password." };
+    return { error: "LOGIN_MISSING_FIELDS" };
   }
 
   const sessionCookie = await login(username, password);
   if (!sessionCookie) {
-    return { error: "Invalid username or password." };
+    return { error: "LOGIN_INVALID" };
   }
 
   return redirect("/", {
@@ -40,10 +41,12 @@ export async function action({ request }: Route.ActionArgs) {
 export default function Login({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const error = actionData && "error" in actionData ? actionData.error : null;
+  const { language, toggle, t } = useLanguage();
+  const error = actionData && "error" in actionData ? t("errors." + actionData.error) : null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
+    <div className="relative flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
+      <button onClick={toggle} className="absolute top-4 right-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">{language === "vi" ? "EN" : "VI"}</button>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <svg
@@ -63,7 +66,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
             NhaTro
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Sign in to manage your property
+            {t("login.subtitle")}
           </p>
         </div>
 
@@ -77,7 +80,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
           <Form method="post" className="space-y-4">
             <Input
               id="username"
-              label="Username"
+              label={t("login.username")}
               name="username"
               type="text"
               autoComplete="username"
@@ -85,14 +88,14 @@ export default function Login({ actionData }: Route.ComponentProps) {
             />
             <Input
               id="password"
-              label="Password"
+              label={t("login.password")}
               name="password"
               type="password"
               autoComplete="current-password"
               required
             />
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              {isSubmitting ? t("login.submitting") : t("login.submit")}
             </Button>
           </Form>
         </div>

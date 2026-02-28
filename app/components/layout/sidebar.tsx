@@ -1,10 +1,11 @@
 import { NavLink, Form } from "react-router";
 import { cn } from "~/lib/utils";
 import { useTheme } from "~/lib/theme";
+import { useLanguage } from "~/lib/language";
 
 const navigation = [
   {
-    name: "Dashboard",
+    nameKey: "nav.dashboard",
     href: "/",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -13,7 +14,7 @@ const navigation = [
     ),
   },
   {
-    name: "Rooms",
+    nameKey: "nav.rooms",
     href: "/rooms",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,7 +23,7 @@ const navigation = [
     ),
   },
   {
-    name: "Tenants",
+    nameKey: "nav.tenants",
     href: "/tenants",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,7 +32,7 @@ const navigation = [
     ),
   },
   {
-    name: "Contracts",
+    nameKey: "nav.contracts",
     href: "/contracts",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,7 +41,7 @@ const navigation = [
     ),
   },
   {
-    name: "Payments",
+    nameKey: "nav.payments",
     href: "/payments",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,7 +50,7 @@ const navigation = [
     ),
   },
   {
-    name: "Utilities",
+    nameKey: "nav.utilities",
     href: "/utilities",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,7 +59,7 @@ const navigation = [
     ),
   },
   {
-    name: "Reports",
+    nameKey: "nav.reports",
     href: "/reports",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,7 +68,7 @@ const navigation = [
     ),
   },
   {
-    name: "Settings",
+    nameKey: "nav.settings",
     href: "/settings",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,7 +85,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
-  const { theme, toggle } = useTheme();
+  const { theme, toggle: toggleTheme } = useTheme();
+  const { t, toggle: toggleLanguage } = useLanguage();
 
   return (
     <>
@@ -112,7 +114,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navigation.map((item) => (
             <NavLink
-              key={item.name}
+              key={item.href}
               to={item.href}
               end={item.href === "/"}
               onClick={onMobileClose}
@@ -126,12 +128,12 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               }
             >
               {item.icon}
-              {item.name}
+              {t(item.nameKey)}
             </NavLink>
           ))}
         </nav>
 
-        {/* Logout + Dark mode toggle */}
+        {/* Logout + Language + Dark mode toggle */}
         <div className="border-t border-gray-200 px-3 py-3 dark:border-gray-700">
           <Form method="post" action="/logout">
             <button
@@ -141,11 +143,20 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              Logout
+              {t("nav.logout")}
             </button>
           </Form>
           <button
-            onClick={toggle}
+            onClick={toggleLanguage}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+            </svg>
+            {t("nav.language")}
+          </button>
+          <button
+            onClick={toggleTheme}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           >
             {theme === "dark" ? (
@@ -157,7 +168,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            {theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
           </button>
         </div>
       </aside>
