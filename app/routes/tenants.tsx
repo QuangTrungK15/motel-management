@@ -22,12 +22,14 @@ import { Badge } from "~/components/ui/badge";
 import { Alert } from "~/components/ui/alert";
 import { formatDate } from "~/lib/utils";
 import { findDuplicateId } from "~/lib/validate-id.server";
+import { requireAuth } from "~/lib/auth.server";
 
 export function meta() {
   return [{ title: "Tenants - Motel Manager" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
 
@@ -55,6 +57,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  await requireAuth(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

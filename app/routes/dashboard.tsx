@@ -1,5 +1,6 @@
 import type { Route } from "./+types/dashboard";
 import { prisma } from "~/lib/db.server";
+import { requireAuth } from "~/lib/auth.server";
 import { PageContainer } from "~/components/layout/page-container";
 import { Header } from "~/components/layout/header";
 import { Stat } from "~/components/ui/stat";
@@ -14,7 +15,8 @@ export function meta() {
   ];
 }
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const rooms = await prisma.room.findMany({
     include: {
       contracts: {

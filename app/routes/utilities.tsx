@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Form, useNavigation, useSearchParams } from "react-router";
 import type { Route } from "./+types/utilities";
 import { prisma } from "~/lib/db.server";
+import { requireAuth } from "~/lib/auth.server";
 import { PageContainer } from "~/components/layout/page-container";
 import { Header } from "~/components/layout/header";
 import { Button } from "~/components/ui/button";
@@ -42,6 +43,7 @@ function getMonthOptions() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const url = new URL(request.url);
   const month = url.searchParams.get("month") || getCurrentMonth();
 
@@ -104,6 +106,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  await requireAuth(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router";
+import { NavLink, Form } from "react-router";
 import { cn } from "~/lib/utils";
 import { useTheme } from "~/lib/theme";
 
@@ -131,8 +131,19 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Dark mode toggle */}
+        {/* Logout + Dark mode toggle */}
         <div className="border-t border-gray-200 px-3 py-3 dark:border-gray-700">
+          <Form method="post" action="/logout">
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </button>
+          </Form>
           <button
             onClick={toggle}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"

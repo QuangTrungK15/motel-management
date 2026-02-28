@@ -1,6 +1,7 @@
 import { Form, useNavigation } from "react-router";
 import type { Route } from "./+types/settings";
 import { prisma } from "~/lib/db.server";
+import { requireAuth } from "~/lib/auth.server";
 import { PageContainer } from "~/components/layout/page-container";
 import { Header } from "~/components/layout/header";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
@@ -12,7 +13,8 @@ export function meta() {
   return [{ title: "Settings - Motel Manager" }];
 }
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const settings = await prisma.setting.findMany();
   const settingsMap: Record<string, string> = {};
   for (const s of settings) {
@@ -22,6 +24,7 @@ export async function loader() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  await requireAuth(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

@@ -1,8 +1,20 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // Create default admin user
+  const hashedPassword = await bcrypt.hash("admin123", 10);
+  await prisma.user.upsert({
+    where: { username: "admin" },
+    update: {},
+    create: {
+      username: "admin",
+      password: hashedPassword,
+    },
+  });
+
   // Create 10 rooms
   for (let i = 1; i <= 10; i++) {
     await prisma.room.upsert({
@@ -37,7 +49,7 @@ async function main() {
     });
   }
 
-  console.log("Seed completed: 10 rooms and default settings created.");
+  console.log("Seed completed: admin user, 10 rooms, and default settings created.");
 }
 
 main()

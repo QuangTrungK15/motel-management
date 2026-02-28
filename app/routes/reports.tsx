@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router";
 import type { Route } from "./+types/reports";
 import { prisma } from "~/lib/db.server";
+import { requireAuth } from "~/lib/auth.server";
 import { PageContainer } from "~/components/layout/page-container";
 import { Header } from "~/components/layout/header";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
@@ -38,6 +39,7 @@ function getMonthOptions() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const url = new URL(request.url);
   const month = url.searchParams.get("month") || getCurrentMonth();
 

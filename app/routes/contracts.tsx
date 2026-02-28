@@ -22,12 +22,14 @@ import {
 import { formatCurrency, formatDate } from "~/lib/utils";
 import { findDuplicateId } from "~/lib/validate-id.server";
 import { Alert } from "~/components/ui/alert";
+import { requireAuth } from "~/lib/auth.server";
 
 export function meta() {
   return [{ title: "Contracts - Motel Manager" }];
 }
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const contracts = await prisma.contract.findMany({
     include: {
       room: true,
@@ -55,6 +57,7 @@ export async function loader() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  await requireAuth(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

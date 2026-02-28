@@ -7,3 +7,4 @@ build/
 .env
 test-results/
 playwright-report/
+e2e/.auth/

@@ -12,12 +12,14 @@ import { Input } from "~/components/ui/input";
 import { Select } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { formatCurrency, formatDate } from "~/lib/utils";
+import { requireAuth } from "~/lib/auth.server";
 
 export function meta() {
   return [{ title: "Rooms - Motel Manager" }];
 }
 
-export async function loader() {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const rooms = await prisma.room.findMany({
     include: {
       contracts: {
@@ -39,6 +41,7 @@ export async function loader() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  await requireAuth(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
