@@ -107,14 +107,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     const mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
     const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
-    const count = await prisma.contract.count({
+    const rooms = await prisma.contract.groupBy({
+      by: ["roomId"],
       where: {
         startDate: { lte: mEnd },
         OR: [{ endDate: null }, { endDate: { gte: mStart } }],
       },
     });
 
-    occupancyHistory.push({ month: monthStr, contracts: count });
+    occupancyHistory.push({ month: monthStr, contracts: rooms.length });
   }
 
   // --- Utility costs for the month ---

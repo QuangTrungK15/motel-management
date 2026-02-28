@@ -2,13 +2,23 @@ import { createCookieSessionStorage, redirect } from "react-router";
 import bcrypt from "bcryptjs";
 import { prisma } from "~/lib/db.server";
 
+function getSessionSecret(): string {
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.SESSION_SECRET) {
+      throw new Error("SESSION_SECRET must be set in production");
+    }
+    return process.env.SESSION_SECRET;
+  }
+  return process.env.SESSION_SECRET || "default-dev-secret";
+}
+
 const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__session",
     httpOnly: true,
     path: "/",
     sameSite: "lax",
-    secrets: [process.env.SESSION_SECRET || "default-dev-secret"],
+    secrets: [getSessionSecret()],
     secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 60 * 24 * 7, // 7 days
   },
