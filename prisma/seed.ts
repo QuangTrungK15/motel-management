@@ -24,7 +24,7 @@ async function main() {
         number: i,
         name: `Room ${i}`,
         floor: i <= 5 ? 1 : 2,
-        rate: 3000000, // default monthly rate
+        rate: 1500000, // default monthly rate
         status: "vacant",
       },
     });
@@ -35,7 +35,7 @@ async function main() {
     { key: "motel_name", value: "My Motel" },
     { key: "motel_address", value: "" },
     { key: "motel_phone", value: "" },
-    { key: "default_room_rate", value: "3000000" },
+    { key: "default_room_rate", value: "1500000" },
     { key: "electric_rate", value: "3500" },
     { key: "water_rate", value: "20000" },
     { key: "currency", value: "VND" },
