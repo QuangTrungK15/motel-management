@@ -25,7 +25,7 @@ import { findDuplicateId } from "~/lib/validate-id.server";
 import { requireAuth } from "~/lib/auth.server";
 
 export function meta() {
-  return [{ title: "Tenants - Motel Manager" }];
+  return [{ title: "Tenants - NhaTro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

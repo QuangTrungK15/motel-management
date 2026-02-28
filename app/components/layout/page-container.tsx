@@ -25,7 +25,7 @@ export function PageContainer({ children }: PageContainerProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <span className="ml-3 text-lg font-bold text-gray-900 dark:text-gray-100">Motel Manager</span>
+        <span className="ml-3 text-lg font-bold text-gray-900 dark:text-gray-100">NhaTro</span>
       </div>
 
       <main className="lg:pl-64">

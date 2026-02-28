@@ -23,7 +23,7 @@ import {
 import { formatCurrency, formatMonth } from "~/lib/utils";
 
 export function meta() {
-  return [{ title: "Utilities - Motel Manager" }];
+  return [{ title: "Utilities - NhaTro" }];
 }
 
 function getCurrentMonth() {

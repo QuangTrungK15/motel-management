@@ -24,7 +24,7 @@ import {
 import { formatCurrency, formatMonth } from "~/lib/utils";
 
 export function meta() {
-  return [{ title: "Payments - Motel Manager" }];
+  return [{ title: "Payments - NhaTro" }];
 }
 
 function getCurrentMonth() {

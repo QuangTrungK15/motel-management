@@ -25,7 +25,7 @@ import { Alert } from "~/components/ui/alert";
 import { requireAuth } from "~/lib/auth.server";
 
 export function meta() {
-  return [{ title: "Contracts - Motel Manager" }];
+  return [{ title: "Contracts - NhaTro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

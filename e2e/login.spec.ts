@@ -10,7 +10,7 @@ test.describe("Login", () => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/login/);
     await expect(
-      page.getByRole("heading", { name: "Motel Manager" })
+      page.getByRole("heading", { name: "NhaTro" })
     ).toBeVisible();
   });
 

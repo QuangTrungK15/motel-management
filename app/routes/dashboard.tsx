@@ -10,7 +10,7 @@ import { formatCurrency } from "~/lib/utils";
 
 export function meta() {
   return [
-    { title: "Dashboard - Motel Manager" },
+    { title: "Dashboard - NhaTro" },
     { name: "description", content: "Motel management dashboard" },
   ];
 }

@@ -15,7 +15,7 @@ import { formatCurrency, formatDate } from "~/lib/utils";
 import { requireAuth } from "~/lib/auth.server";
 
 export function meta() {
-  return [{ title: "Rooms - Motel Manager" }];
+  return [{ title: "Rooms - NhaTro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

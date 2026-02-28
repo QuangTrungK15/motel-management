@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Alert } from "~/components/ui/alert";
 
 export function meta() {
-  return [{ title: "Login - Motel Manager" }];
+  return [{ title: "Login - NhaTro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -60,10 +60,10 @@ export default function Login({ actionData }: Route.ComponentProps) {
             />
           </svg>
           <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Motel Manager
+            NhaTro
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Sign in to manage your motel
+            Sign in to manage your property
           </p>
         </div>
 

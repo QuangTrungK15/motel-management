@@ -10,7 +10,7 @@ import { Input } from "~/components/ui/input";
 import { Alert } from "~/components/ui/alert";
 
 export function meta() {
-  return [{ title: "Settings - Motel Manager" }];
+  return [{ title: "Settings - NhaTro" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -1,6 +1,6 @@
-# Motel Management
+# NhaTro
 
-A full-stack motel management application built with React Router v7, Prisma, and TailwindCSS.
+A full-stack motel/rental management application built with React Router v7, Prisma, and TailwindCSS.
 
 ## Features
 
