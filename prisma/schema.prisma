@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id            Int        @id @default(autoincrement())
+  number        Int        @unique
+  name          String     @default("")
+  floor         Int        @default(1)
+  rate          Float      @default(0)
+  status        String     @default("vacant") // vacant, occupied, maintenance
+  maxOccupants  Int        @default(5)
+  notes         String     @default("")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  contracts Contract[]
+  utilities Utility[]
+}
+
+model Tenant {
+  id          Int        @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  phone       String     @default("")
+  email       String     @default("")
+  idNumber    String     @default("")
+  idType      String     @default("") // CCCD, passport, etc.
+  notes       String     @default("")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  contracts   Contract[]
+}
+
+model Contract {
+  id          Int       @id @default(autoincrement())
+  roomId      Int
+  tenantId    Int
+  startDate   DateTime
+  endDate     DateTime?
+  monthlyRent Float
+  deposit     Float     @default(0)
+  status      String    @default("active") // active, ended
+  notes       String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  room        Room       @relation(fields: [roomId], references: [id])
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  payments    Payment[]
+  occupants   Occupant[]
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  contractId  Int
+  amount      Float
+  month       String   // e.g. "2026-02" for February 2026
+  type        String   @default("rent") // rent, deposit, utility, other
+  method      String   @default("cash") // cash, transfer, card
+  status      String   @default("paid") // paid, pending
+  paidAt      DateTime?
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contract    Contract @relation(fields: [contractId], references: [id])
+}
+
+model Utility {
+  id              Int      @id @default(autoincrement())
+  roomId          Int
+  month           String   // e.g. "2026-02"
+  electricStart   Float    @default(0)
+  electricEnd     Float    @default(0)
+  electricRate    Float    @default(0)
+  waterStart      Float    @default(0)
+  waterEnd        Float    @default(0)
+  waterRate       Float    @default(0)
+  totalAmount     Float    @default(0)
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  room            Room     @relation(fields: [roomId], references: [id])
+
+  @@unique([roomId, month])
+}
+
+model Setting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+}
+
+model Occupant {
+  id           Int      @id @default(autoincrement())
+  contractId   Int
+  firstName    String
+  lastName     String
+  phone        String   @default("")
+  idNumber     String   @default("")
+  idType       String   @default("")
+  relationship String   @default("") // family, friend, roommate, etc.
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  contract     Contract @relation(fields: [contractId], references: [id])
+}

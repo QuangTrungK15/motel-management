@@ -1,0 +1,9 @@
+node_modules/
+build/
+.react-router/
+.DS_Store
+*.db
+*.db-journal
+.env
+test-results/
+playwright-report/
